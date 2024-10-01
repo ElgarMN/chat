@@ -1,20 +1,42 @@
+const express = require('express');
+const http = require('http');
 const WebSocket = require('ws');
+const path = require('path');
 
-const wss = new WebSocket.Server({ port: 8080 });
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
+// Statik dosyaları sun
+app.use(express.static('public'));
 
-    // Tüm bağlı kullanıcılara mesajı gönder
-    wss.clients.forEach(function each(client) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
-  });
-
-  ws.send('Sunucuya başarıyla bağlandınız!');
+// Ana sayfa isteği
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-console.log('WebSocket sunucusu 8080 portunda çalışıyor...');
+// WebSocket bağlantısı
+wss.on('connection', (ws) => {
+    console.log('Yeni bir bağlantı kuruldu.');
+
+    ws.on('message', (message) => {
+        console.log(`Gelen mesaj: ${message}`);
+
+        // Tüm bağlı istemcilere mesaj gönder
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(message); // Mesajı doğrudan gönder
+            }
+        });
+    });
+
+    ws.on('close', () => {
+        console.log('Bağlantı kapatıldı.');
+    });
+});
+
+// Sunucu dinleme
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Sunucu ${PORT} portunda çalışıyor.`);
+});
