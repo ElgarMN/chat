@@ -41,21 +41,9 @@
         const sendButton = document.getElementById('send-button');
         const messageInput = document.getElementById('message');
 
-        // Mesajları localStorage'dan yükle
-        function loadMessages() {
-            const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-            messages.forEach(msg => {
-                const messageElement = document.createElement('div');
-                messageElement.textContent = msg;  // Gelen mesaj
-                chatBox.appendChild(messageElement);
-            });
-            chatBox.scrollTop = chatBox.scrollHeight; // En son mesaja kaydır
-        }
-
         // WebSocket bağlantısı açıldığında
         socket.addEventListener('open', function (event) {
             console.log('WebSocket bağlantısı kuruldu.');
-            loadMessages();  // Sayfa yüklendiğinde önceki mesajları yükle
         });
 
         // Sunucudan gelen mesajı alıp chat kutusuna ekle
@@ -64,9 +52,6 @@
             messageElement.textContent = event.data; // Gelen mesaj
             chatBox.appendChild(messageElement);
             chatBox.scrollTop = chatBox.scrollHeight; // En son mesaja kaydır
-
-            // Mesajı localStorage'da sakla
-            saveMessageToLocalStorage(event.data);
         });
 
         sendButton.addEventListener('click', sendMessage);
@@ -80,13 +65,6 @@
 
             // Mesaj kutusunu temizle
             messageInput.value = '';
-        }
-
-        // Mesajı localStorage'da saklama
-        function saveMessageToLocalStorage(message) {
-            const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-            messages.push(message);
-            localStorage.setItem('chatMessages', JSON.stringify(messages));
         }
     </script>
 </body>
